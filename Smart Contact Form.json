@@ -1,0 +1,254 @@
+{
+  "name": "Smart Contact Form",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contact-form",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "fd368a66-d41f-4dc7-b7ea-d0b406767c63",
+      "name": "Webhook",
+      "webhookId": "6fbfe500-af31-4d48-bdc8-ee3d5fd2d6f5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Webhook يخدم ✅\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        304,
+        -224
+      ],
+      "id": "e63de1bb-f142-4632-ab99-7ab535f77541",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc686ab3-b18d-4094-9b0d-b0d553611c03",
+              "name": "name",
+              "value": "={{$json.body.name}}\n",
+              "type": "string"
+            },
+            {
+              "id": "41afed80-b154-44ad-b750-43069e5d29c0",
+              "name": "=email",
+              "value": "={{$json.body.email}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        480
+      ],
+      "id": "a34bb6f6-6a32-4023-ba57-647ba9db3a8c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bdd17e5a-7e00-4789-a301-93967c5e6c78",
+              "leftValue": "={{$json.email}}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "0f15b793-5883-4691-8bb8-2c3c863f1e7e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"الداتا ناقصة أو غالطة\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1136,
+        432
+      ],
+      "id": "2b44a81d-4fc6-448a-8f4c-963dea99d9f1",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "mistralai/mistral-7b-instruct",
+          "mode": "list",
+          "cachedResultName": "MISTRALAI/MISTRAL-7B-INSTRUCT"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You write short romantic love emails in English.\n\nRules:\n- 3 to 5 short sentences only\n- Soft, romantic, and sincere tone\n- Use ONLY 2 to 4 love emojis total\n- No repetition\n- No exaggeration\n- No extra explanations\n\nReturn ONLY the email text.\n"
+            },
+            {
+              "content": "Write a short love email\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "store": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1264,
+        -112
+      ],
+      "id": "100ec07c-3417-401c-9243-29a07ea94634",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "7dZFVQVWPQW2FEu8",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "ghaythweslaty10@gmail.com",
+        "toEmail": "={{$node[\"Webhook\"].json.body.email}}\n",
+        "subject": "Re: Habyby",
+        "html": "=<div style=\"font-family: Arial; font-size:16px; line-height:1.6\">\n  {{ $node[\"Message a model\"].json.output[0].content[0].text }}\n</div>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1888,
+        304
+      ],
+      "id": "3f9b7072-65ff-4440-b469-92f8c78075f6",
+      "name": "Send email",
+      "webhookId": "c704f47b-2e65-404b-8cb6-f08d165e5dab",
+      "credentials": {
+        "smtp": {
+          "id": "CEuBXMrQwKCENKQP",
+          "name": "SMTP account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "f3edbe2e-f09f-4b1e-b190-dc2c7e0c35de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c1f91d36384c33d2ffeb8a63b399c303ec4aa04d0b4733decba29ae8569eeb58"
+  },
+  "id": "0DdJsF5sdQRcZgSKY_CcX",
+  "tags": []
+}
